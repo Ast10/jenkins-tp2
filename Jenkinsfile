@@ -24,5 +24,58 @@ pipeline {
                 '''
             }
         }
+        stage('Qualité') {
+            failFast true
+            parallel {
+                stage('Lint') {
+                    steps {
+                        echo 'Analyse statique...'
+                        sh 'sleep 10'
+                    }
+                }
+                stage('Tests unitaires') {
+                    steps {
+                        echo 'Tests unitaires...'
+                        sh 'sleep 15'
+                    }
+                }
+                stage('Sécurité') {
+                    steps {
+                        echo 'Scan de dépendances...'
+                        sh 'sleep 5'
+                    }
+                }
+            }
+        }
+     stage('Tests') {
+            when {
+                expression { params.RUN_TESTS }
+            }
+            steps {
+                echo 'Exécution des tests...'
+                sh 'test -f build/app.txt'
+            }
+        }
+
+     stage('Déploiement recette') {
+            when {
+                allOf {
+                    expression { params.ENVIRONNEMENT == 'recette' }
+                    branch 'main'
+                }
+            }
+            steps {
+                echo 'Déploiement en recette...'
+            }
+        }
+
+        stage('Déploiement prod') {
+            when {
+                expression { params.ENVIRONNEMENT == 'prod' }
+            }
+            steps {
+                echo 'Déploiement en production...'
+            }
+        }
     }
 }
